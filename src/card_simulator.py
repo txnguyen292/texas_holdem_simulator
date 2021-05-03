@@ -27,7 +27,7 @@ class Card_Deck:
         self.cards = self.cards[::-1]
         return self
 
-    def deal(self, shuffle: bool=False) -> Card:
+    def deal(self, shuffle: bool=False, seed: int=123) -> Card:
         """Deal the card on top of the deck
 
         Args:
@@ -37,7 +37,7 @@ class Card_Deck:
             [Card]: a card
         """
         if shuffle:
-            self.shuffle()
+            self.shuffle(seed=seed)
         return self.cards.pop()
 
 
