@@ -103,7 +103,7 @@ class Hands:
         Returns:
             bool: [description]
         """
-        if not self._is_straight and not self._is_flush and not self._is_three_of_a_kind:
+        if not self._is_straight and not self._is_flush: 
             return len(cards) - 1 == len(set(cards))
         return False
 
