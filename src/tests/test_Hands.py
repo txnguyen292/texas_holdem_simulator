@@ -173,8 +173,9 @@ def test_is_pair(card_deck, hand):
     card_deck.shuffle()
     random_ind = np.random.randint(0, 52, 1)[0]
     random_card = card_deck.cards[random_ind]
-    five_of_same_suits = [card for card in card_deck.cards if card.suit == random_card.suit]
-    pass
+    one_pair = get_same_value([random_card], card_deck, type_of_pair="two")
+    assert hand._is_pair, f"Checking if {one_pair} contains a pair"
+
 
 def test_is_three_of_a_kind(card_deck, hand):
     card_deck.shuffle()
