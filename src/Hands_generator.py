@@ -1,13 +1,36 @@
-from typing import List, Dict, DefaultDict
+import numpy as np 
+import logging
+import argparse
+from typing import List, Dict, DefaultDict, Literal
 from card_simulator import Card_Deck
 from Hands import Hands
+from logzero import setup_logger 
+from config import CONFIG
 
+LOGLVL: Dict[str, int] = {"debug": logging.DEBUG, "info": logging.INFO, "warning": logging.WARNING}
+logger = setup_logger(__file__, logfile=str(CONFIG.reports / "hands_generator.log"), level=logging.DEBUG)
+
+#==================================================== HELPER FUNCTION =============================================================
+def get_args():
+    parser = argparse.ArgumentParser(
+        description="A poker hand generator",
+        formatter_class=argparse.ArgumentDefaultsHelpFormatter
+    )
+
+    parser.add_argument("--loglvl", type=str, default=None,
+                        help="Setting log level, defaults to debug")
+    return parser.parse_known_args()
+
+#=====================================================    END    ==================================================================
+
+#==================================================== MAIN ========================================================================
 class Hands_Generator:
     def __init__(self):
         pass
     # TODO: Move these helper functions into a seperate module and develop test cases for them
     def get_straight(self, straights: List[Card_Deck.Card], cards: Card_Deck, greater: bool=True) -> List[Card_Deck.Card]:
-        """Get 5 consecutive cards in a deck with a given card
+        #TODO: rewrite get_straight function to account for two way straight
+        """Get 7 cards that consist of 5 consecutive cards in a deck with a given card
 
         Args:
             straights (List[Card_Deck.Card]): first card
@@ -17,25 +40,30 @@ class Hands_Generator:
         Returns:
             Card_Deck: a list of consecutive numbers
         """
-        if greater:
-            while len(straights) <= 5:
-                current_count = straights[-1].value + 1
-                for idx, card in enumerate(cards.cards):
-                    if card.value == current_count:
-                        straights.append(card)
-                        break
+        current_value = straights[0].value
+        if 13 - current_value <= 4:
+            max_val = 13
         else:
-            while len(straights) <= 5:
-                if straights[0].value == 1:
-                    current_count = 13
-                else:
-                    current_count = straights[-1].value - 1
-                for idx, card in enumerate(cards.cards):
-                    if card.value == current_count:
-                        straights.append(card)
-                        break
-        for _ in range(2):
-            straights.append(cards.deal())
+            max_val = current_value + 5
+        if current_value - 4 <= 0:
+            min_val = 0
+        else:
+            min_val = current_value - 4
+        initial_value_to_pick = np.random.randint(min_val, max_val, 1)[0]
+        if initial_value_to_pick > current_value:
+            values_to_pick = list(range(initial_value_to_pick - 4, initial_value_to_pick + 1))
+            logger.debug(f"Lower pick from: {values_to_pick}")
+            straights = [cards.Card(x, np.random.choice(list(cards.SUITS.keys()))) for x in values_to_pick]
+        else:
+            values_to_pick = list(range(initial_value_to_pick, initial_value_to_pick + 5))
+            logger.debug(f"Higher pick from: {values_to_pick}")
+            straights = [cards.Card(x, np.random.choice(list(cards.SUITS.keys()))) for x in values_to_pick]
+        while len(straights) < 7:
+            potential_card = cards.deal()
+            if potential_card.value not in values_to_pick:
+                straights.append(potential_card)
+                values_to_pick.append(potential_card.value)
+        return straights
 
     def get_same_suits(self, same_suits: List[Card_Deck.Card], cards: Card_Deck)-> List[Card_Deck.Card]:
         """Return a list that contains five cards of the same suit
@@ -53,7 +81,7 @@ class Hands_Generator:
                 if card.suit == first_suit:
                     same_suits.append(card)
         for _ in range(2):
-            same_suits.append(cards.deal())
+            same_suits.append(cards.deal(shuffle=True))
         return same_suits
 
     def get_same_value(self, first_card: List[Card_Deck.Card], cards: Card_Deck, type_of_pair: Literal["two", "three", "four"]) -> List[Card_Deck.Card]:
@@ -102,6 +130,7 @@ class Hands_Generator:
                 idx += 1
                 continue
             else: 
+                pass
             # Check if hand contains a straight
             if first_value < 5:
                 if straight_upper >= 4:
@@ -119,7 +148,7 @@ class Hands_Generator:
                     idx += 1
                     continue
                 if current_card.value > first_card[-1].value:
-                
+                    pass
             values.add(current_card.value)
             suits[current_card.suit] += 1
             first_card.append(current_card)
@@ -127,5 +156,16 @@ class Hands_Generator:
             #TODO: Finish generating just high cards
         return first_card
 
+#=======================================  END  =============================================================================
+
 if __name__ == "__main__":
-    pass
+    args, _ = get_args()
+    if args.loglvl is not None:
+        logger.setLevel(LOGLVL[args.loglvl])
+    hand_generator = Hands_Generator()
+    card_deck = Card_Deck()
+    for _ in range(1000):
+        random_ind = np.random.randint(0, 52, 1)[0]
+        random_card = card_deck.cards[random_ind]
+        straights = hand_generator.get_straight([random_card], card_deck)
+        assert len(straights) == 5
