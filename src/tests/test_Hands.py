@@ -3,7 +3,7 @@ import sys
 import numpy as np
 import pytest
 
-from typing import List
+from typing import List, Literal
 from config import CONFIG
 sys.path.insert(0, str(CONFIG.src))
 from Hands import Hands
@@ -60,16 +60,58 @@ def get_same_suits(same_suits: List[Card_Deck.Card], cards: Card_Deck)-> List[Ca
         same_suits.append(cards.deal())
     return same_suits
 
-def get_three_of_a_kind(three_of_a_kinds: List[Card_Deck.Card], cards: Card_Deck) -> List[Card_Deck.Card]:
-    """Return a a list that contains five cards of three of a kind
+def get_four_of_a_kind(four_of_a_kind: List[Card_Deck.Card], cards: Card_Deck) -> List[Card_Deck.Card]:
+    """Returns a list that contains four of a kind
 
     Args:
-        three_of_a_kinds (List[Card_Deck.Card]): [description]
+        four_of_a_kind (List[Card_Deck.Card]): [description]
         cards (Card_Deck): [description]
 
     Returns:
         List[Card_Deck.Card]: [description]
     """
+    pass
+
+def get_same_value(first_card: List[Card_Deck.Card], cards: Card_Deck, type_of_pair: Literal["two", "three", "four"]) -> List[Card_Deck.Card]:
+    """Returns a list that contains fives which has number of type pairs
+
+    Args:
+        first_card (List[Card_Deck.Card]): list with first card
+        cards (Card_Deck): card deck
+        type_of_pair (Literal[): type of pair to produce
+
+    Returns:
+        List[Card_Deck.Card]: List of 7 cards with type of pair
+    """
+    valToInt = {"two": 2, "three": 3, "four": 4}
+    first_value = first_card[0].value
+    idx = 0
+    while len(first_card) < valToInt[type_of_pair] and idx < len(cards.cards):
+        if cards.cards[idx].value == first_value:
+            first_card.append(cards.cards[idx])
+        idx += 1
+    return first_card
+
+def get_three_of_a_kind(three_of_a_kinds: List[Card_Deck.Card], cards: Card_Deck) -> List[Card_Deck.Card]:
+    """Return a a list that contains five cards of three of a kind
+
+    Args:
+        three_of_a_kinds (List[Card_Deck.Card]): List with first card
+        cards (Card_Deck): card deck
+
+    Returns:
+        List[Card_Deck.Card]: list that contains three of a kind hand
+    """
+    first_value = three_of_a_kinds[0].value
+    idx = 0
+    while len(three_of_a_kinds) < 3 and idx < len(cards):
+        if cards[idx].value == first_value:
+            three_of_a_kinds.append(cards[idx])
+        idx += 1
+    while len(three_of_a_kinds) < 7:
+        three_of_a_kinds.append(card.deal())
+    return three_of_a_kinds
+        
     
 #======================================== END ===============================================
 
@@ -132,6 +174,16 @@ def test_is_pair(card_deck, hand):
     random_ind = np.random.randint(0, 52, 1)[0]
     random_card = card_deck.cards[random_ind]
     five_of_same_suits = [card for card in card_deck.cards if card.suit == random_card.suit]
+    pass
+
+def test_is_three_of_a_kind(card_deck, hand):
+    card_deck.shuffle()
+    random_ind = np.random.randint(0, 52, 1)[0]
+    random_card = card_deck.cards[random_ind]
+    three_of_a_kind = get_same_value([random_card], card_deck, type_of_pair="three")
+    assert hand._is_three_of_a_kind(three_of_a_kind), f"Checking three of a kind of {three_of_a_kind}"
+
+def test_is_four_of_a_kind(card_deck, hand):
     pass
 
     
