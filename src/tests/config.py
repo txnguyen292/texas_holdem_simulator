@@ -6,6 +6,7 @@ base_dir = file_dir.parent.parent
 class CONFIG:
     app = base_dir / "app"
     src = base_dir / "src"
+    reports = base_dir / "reports"
 
 if __name__ == "__main__":
     print(base_dir)
