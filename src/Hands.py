@@ -22,16 +22,8 @@ class Hands:
         self.straight_flush: int = 0 # straight and flush
         self.royal_flush: int = 0 # royals, and straight_flush
     
-    def is_unique(cards: List[Card_Deck.Card]) -> bool:
-        """Check if all the cards in a hand are unique
-
-        Args:
-            cards (List[Card_Deck.Card]): 5 cards of a player
-
-        Returns:
-            bool: True if all cards are distinct
-        """
-        return len(cards) == len(set(cards))
+    def _count_value_pair(self, cards: List[Card_Deck.Card]) -> bool:
+        pass
 
     def _is_flush(self, cards: List[Card_Deck.Card]) -> bool:
         """Check if a hand is of the same suit
@@ -106,7 +98,7 @@ class Hands:
         Returns:
             bool: [description]
         """
-        if not self._is_straight and not self._is_flush:
+        if not self._is_straight and not self._is_flush and not self._is_three_of_a_kind:
             return len(cards) - 1 == len(set(cards))
         return False
 
@@ -119,7 +111,11 @@ class Hands:
         Returns:
             bool: true if hand is a three of a kind
         """
-        
+        unique_values = {}
+        for card in cards:
+            unique_values.update(card.value)
+        return max(unique_values.values) == 3
+
 
 if __name__ == "__main__":
     pass
