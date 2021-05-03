@@ -2,8 +2,8 @@
 
 from typing import List, Any, Literal, Dict
 import sys
-from config import CONFIG
-sys.path.insert(0, str(CONFIG.src))
+from config import CONFIG, file_dir
+sys.path.insert(0, str(file_dir))
 from card_simulator import Card_Deck
 
 
