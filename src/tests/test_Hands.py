@@ -11,6 +11,7 @@ from Hands import Hands
 from card_simulator import Card_Deck
 
 #================================== HELPER FUNCTIONS ========================================
+# TODO: Move these helper functions into a seperate module and develop test cases for them
 def get_straight(straights: List[Card_Deck.Card], cards: Card_Deck, greater: bool=True) -> List[Card_Deck.Card]:
     """Get 5 consecutive cards in a deck with a given card
 
