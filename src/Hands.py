@@ -1,6 +1,6 @@
 """Implement a Hand simulator"""
 
-from typing import List
+from typing import List, Any, Literal, Dict
 import sys
 from config import CONFIG
 sys.path.insert(0, str(CONFIG.src))
@@ -22,8 +22,13 @@ class Hands:
         self.straight_flush: int = 0 # straight and flush
         self.royal_flush: int = 0 # royals, and straight_flush
     
-    def _count_value_pair(self, cards: List[Card_Deck.Card]) -> bool:
-        pass
+    def _count_value_pair(self, cards: List[Card_Deck.Card], value_pair: Dict[Any, Any]) -> bool:
+        for card in cards:
+            if card.value in value_pair:
+                value_pair[card.value] += 1
+            else:
+                value_pair[card.value] = 1
+        return value_pair
 
     def _is_flush(self, cards: List[Card_Deck.Card]) -> bool:
         """Check if a hand is of the same suit
@@ -111,10 +116,8 @@ class Hands:
         Returns:
             bool: true if hand is a three of a kind
         """
-        unique_values = {}
-        for card in cards:
-            unique_values.update(card.value)
-        return max(unique_values.values) == 3
+        unique_values = self._count_value_pair(cards, {})
+        return max(unique_values.values()) == 3
 
 
 if __name__ == "__main__":
