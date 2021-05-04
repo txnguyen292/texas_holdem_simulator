@@ -1,14 +1,14 @@
 import numpy as np 
 import logging
 import argparse
-from typing import List, Dict, DefaultDict, Literal
+from typing import List, Dict, DefaultDict, Literal, Set
 from card_simulator import Card_Deck
 from Hands import Hands
 from logzero import setup_logger 
 from config import CONFIG
 
 LOGLVL: Dict[str, int] = {"debug": logging.DEBUG, "info": logging.INFO, "warning": logging.WARNING}
-logger = setup_logger(__file__, logfile=str(CONFIG.reports / "hands_generator.log"), level=logging.DEBUG)
+logger = setup_logger(__file__, logfile=str(CONFIG.reports / "hands_generator.log"), level=logging.WARNING)
 
 #==================================================== HELPER FUNCTION =============================================================
 def get_args():
@@ -27,9 +27,7 @@ def get_args():
 class Hands_Generator:
     def __init__(self):
         pass
-    # TODO: Move these helper functions into a seperate module and develop test cases for them
     def get_straight(self, straights: List[Card_Deck.Card], cards: Card_Deck, greater: bool=True) -> List[Card_Deck.Card]:
-        #TODO: rewrite get_straight function to account for two way straight
         """Get 7 cards that consist of 5 consecutive cards in a deck with a given card
 
         Args:
@@ -84,25 +82,44 @@ class Hands_Generator:
             same_suits.append(cards.deal(shuffle=True))
         return same_suits
 
-    def get_same_value(self, first_card: List[Card_Deck.Card], cards: Card_Deck, type_of_pair: Literal["two", "three", "four"]) -> List[Card_Deck.Card]:
+    def get_same_value(self, first_card: List[Card_Deck.Card], cards: Card_Deck, type_of_pair: Literal["one", "two", "three", "four"]) -> List[Card_Deck.Card]:
         """Returns a list that contains fives which has number of type pairs
 
         Args:
             first_card (List[Card_Deck.Card]): list with first card
             cards (Card_Deck): card deck
-            type_of_pair (Literal[): type of pair to produce
+            type_of_pair (Literal["one", "two", "three", "four"]): type of pair to produce. If "two", generate two pairs with different values.
 
         Returns:
-            List[Card_Deck.Card]: List of 7 cards with type of pair
+            List[Card_Deck.Card]: List of number of type of pair cards with type of pair
         """
-        valToInt: Dict[str, int] = {"two": 2, "three": 3, "four": 4}
-        first_value: int = first_card[0].value
+        first_card_copy = first_card.copy()
+        valToInt: Dict[str, int] = {"one":2, "three": 3, "four": 4}
+        first_value: int = first_card_copy[0].value
         idx: int = 0
-        while len(first_card) < valToInt[type_of_pair] and idx < len(cards.cards):
-            if cards.cards[idx].value == first_value:
-                first_card.append(cards.cards[idx])
-            idx += 1
-        return first_card
+        if type_of_pair != "two":
+            no_cards_to_get = valToInt[type_of_pair]
+            unique_suits = {first_card_copy[0].suit}
+            logger.debug(f"Return {no_cards_to_get} cards.")
+            while len(first_card_copy) < no_cards_to_get and idx < len(cards.cards):
+                if cards.cards[idx].value == first_value and cards.cards[idx].suit not in unique_suits: 
+                    first_card_copy.append(cards.cards[idx])
+                    print(f"appending {cards.cards[idx]}")
+                    unique_suits.add(cards.cards[idx].suit)
+                    print(unique_suits)
+                    logger.debug(f"Length of current list {len(first_card_copy)}")
+                idx += 1
+        else:
+            unique_values: Set[int] = {first_value}
+            first_card_copy: List[Card_Deck.Card] = self.get_same_value(first_card_copy, cards, "one")
+            while len(unique_values) < 2:
+                random_ind = np.random.randint(0, 52, 1)[0]
+                random_card_1 = cards.cards[random_ind]
+                if random_card_1.value not in unique_values:
+                    unique_values.add(random_card_1.value)
+            second_card: List[Card_Deck.Card] = self.get_same_value([random_card_1], cards, "one")
+            first_card_copy = first_card_copy + second_card
+        return first_card_copy
 
     def get_high_card(self, first_card: List[Card_Deck.Card], cards: Card_Deck) -> List[Card_Deck.Card]:
         """Return a list that contains only high cards
@@ -161,7 +178,7 @@ class Hands_Generator:
 if __name__ == "__main__":
     args, _ = get_args()
     if args.loglvl is not None:
-        logger.setLevel(LOGLVL[args.loglvl])
+        logger.loglevel(LOGLVL[args.loglvl])
     hand_generator = Hands_Generator()
     card_deck = Card_Deck()
     for _ in range(1000):
